@@ -1,6 +1,6 @@
-const Contact = require("../models/contacts");
+const Contact = require("../models/contact");
 const createError = require("../helpers");
-const constactsSchema = require("../Schemas/Schema");
+const { contactsSchema, favoriteSchema } = require("../Schemas/Schema");
 
 class Contacts {
   async listContacts(req, res, next) {
@@ -27,7 +27,7 @@ class Contacts {
 
   async addContact(req, res, next) {
     try {
-      const { error } = constactsSchema.validate(req.body);
+      const { error } = contactsSchema.validate(req.body);
       if (error) {
         res.status(400).json({ message: "missing required name field" });
         return;
@@ -55,7 +55,27 @@ class Contacts {
 
   async updateContact(req, res, next) {
     try {
-      const { error } = constactsSchema.validate(req.body);
+      const { error } = contactsSchema.validate(req.body);
+      if (error) {
+        res.status(400).json({ message: "missing fields" });
+        return;
+      }
+      const { contactId } = req.params;
+      const result = await Contact.findByIdAndUpdate(contactId, req.body, {
+        new: true,
+      });
+      if (!result) {
+        throw createError(404);
+      }
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateFavorite(req, res, next) {
+    try {
+      const { error } = favoriteSchema.validate(req.body);
       if (error) {
         res.status(400).json({ message: "missing fields" });
         return;
